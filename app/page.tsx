@@ -9,42 +9,40 @@ export default function Home() {
   const [activeTab, setActiveTab] = useState("emergency");
 
   return (
-    <main className="min-h-screen bg-white text-slate-900 py-8 px-4">
-      <div className="container mx-auto max-w-4xl">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-slate-900">
-            Financeira Inteligente
-          </h1>
-        </div>
+    <main className="min-h-screen bg-background py-8 px-4">
+      <div className="container mx-auto max-w-3xl">
+        <h1 className="text-2xl font-bold text-center mb-8 text-foreground">
+          Financeira Inteligente
+        </h1>
 
         <div className="mb-8">
-          <div className="flex rounded-md border border-slate-200 p-1 bg-slate-50">
+          <div className="inline-flex h-10 items-center justify-center rounded-md bg-muted p-1 text-muted-foreground w-full">
             <button
               onClick={() => setActiveTab("emergency")}
-              className={`flex-1 py-2 px-4 rounded-md transition-all ${
+              className={`inline-flex items-center justify-center whitespace-nowrap rounded-sm px-3 py-1.5 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 flex-1 ${
                 activeTab === "emergency"
-                  ? "bg-white text-slate-900 shadow-sm"
-                  : "text-slate-500 hover:text-slate-900"
+                  ? "bg-background text-foreground shadow-sm"
+                  : "hover:bg-muted hover:text-foreground"
               }`}
             >
               Reserva de Emergência
             </button>
             <button
               onClick={() => setActiveTab("million")}
-              className={`flex-1 py-2 px-4 rounded-md transition-all ${
+              className={`inline-flex items-center justify-center whitespace-nowrap rounded-sm px-3 py-1.5 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 flex-1 ${
                 activeTab === "million"
-                  ? "bg-white text-slate-900 shadow-sm"
-                  : "text-slate-500 hover:text-slate-900"
+                  ? "bg-background text-foreground shadow-sm"
+                  : "hover:bg-muted hover:text-foreground"
               }`}
             >
               Primeiro Milhão
             </button>
             <button
               onClick={() => setActiveTab("compound")}
-              className={`flex-1 py-2 px-4 rounded-md transition-all ${
+              className={`inline-flex items-center justify-center whitespace-nowrap rounded-sm px-3 py-1.5 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 flex-1 ${
                 activeTab === "compound"
-                  ? "bg-white text-slate-900 shadow-sm"
-                  : "text-slate-500 hover:text-slate-900"
+                  ? "bg-background text-foreground shadow-sm"
+                  : "hover:bg-muted hover:text-foreground"
               }`}
             >
               Juros Compostos
@@ -52,10 +50,12 @@ export default function Home() {
           </div>
         </div>
 
-        <div className="transition-all">
-          {activeTab === "emergency" && <EmergencyFundCalculator />}
-          {activeTab === "million" && <FirstMillionCalculator />}
-          {activeTab === "compound" && <CompoundInterestCalculator />}
+        <div className="bg-card text-card-foreground rounded-lg border shadow-sm">
+          <div className="p-6">
+            {activeTab === "emergency" && <EmergencyFundCalculator />}
+            {activeTab === "million" && <FirstMillionCalculator />}
+            {activeTab === "compound" && <CompoundInterestCalculator />}
+          </div>
         </div>
       </div>
     </main>

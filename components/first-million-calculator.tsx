@@ -57,24 +57,24 @@ export default function FirstMillionCalculator() {
 
   const calculateMonthlyAmount = (currentData: MillionData) => {
     // Validate data
-    const errors: { [key: string]: string } = {};
+    const newErrors: { [key: string]: string } = {};
 
     if (currentData.initialInvestment < 0) {
-      errors.initialInvestment = "O valor inicial não pode ser negativo";
+      newErrors.initialInvestment = "O valor inicial não pode ser negativo";
     }
 
     if (currentData.annualInterestRate < 0.1) {
-      errors.annualInterestRate = "A taxa deve ser maior que 0.1%";
+      newErrors.annualInterestRate = "A taxa deve ser maior que 0.1%";
     } else if (currentData.annualInterestRate > 100) {
-      errors.annualInterestRate = "A taxa deve ser menor que 100%";
+      newErrors.annualInterestRate = "A taxa deve ser menor que 100%";
     }
 
     if (currentData.years < 1) {
-      errors.years = "O prazo deve ser de pelo menos 1 ano";
+      newErrors.years = "O prazo deve ser de pelo menos 1 ano";
     }
 
-    if (Object.keys(errors).length > 0) {
-      setErrors(errors);
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
       return;
     }
 
@@ -97,7 +97,8 @@ export default function FirstMillionCalculator() {
     setData({ ...data, [id]: numValue });
   };
 
-  const handleCalculate = () => {
+  const handleCalculate = (e: React.FormEvent) => {
+    e.preventDefault();
     calculateMonthlyAmount(data);
   };
 
@@ -156,27 +157,17 @@ ${motivationalPhrase}
   };
 
   return (
-    <div className="bg-white rounded-lg overflow-hidden border border-slate-200 shadow-sm">
-      <div className="p-6 border-b border-slate-200">
-        <h2 className="text-xl font-bold text-slate-900">
-          Quando chego no 1º milhão
-        </h2>
-        <p className="text-slate-500 mt-1">
-          Calcule quanto você precisa investir mensalmente para alcançar R$
-          1.000.000
-        </p>
-      </div>
-
-      <div className="p-6 space-y-6">
+    <div>
+      <form onSubmit={handleCalculate} className="space-y-6">
         <div className="space-y-2">
           <label
             htmlFor="initialInvestment"
-            className="block text-sm font-medium text-slate-700"
+            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
           >
-            Valor já investido (PV)
+            Valor já investido
           </label>
           <div className="relative">
-            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500">
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
               R$
             </span>
             <input
@@ -184,20 +175,22 @@ ${motivationalPhrase}
               type="number"
               min="0"
               step="0.01"
-              className="w-full bg-white border border-slate-300 rounded-md py-2 pl-10 pr-3 text-slate-900 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 pl-8 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
               value={data.initialInvestment || ""}
               onChange={handleInputChange}
             />
           </div>
           {errors.initialInvestment && (
-            <p className="text-sm text-red-500">{errors.initialInvestment}</p>
+            <p className="text-sm font-medium text-destructive">
+              {errors.initialInvestment}
+            </p>
           )}
         </div>
 
         <div className="space-y-2">
           <label
             htmlFor="annualInterestRate"
-            className="block text-sm font-medium text-slate-700"
+            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
           >
             Taxa de juros anual (%)
           </label>
@@ -208,23 +201,25 @@ ${motivationalPhrase}
               min="0.1"
               max="100"
               step="0.1"
-              className="w-full bg-white border border-slate-300 rounded-md py-2 px-3 pr-8 text-slate-900 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 pr-8 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
               value={data.annualInterestRate || ""}
               onChange={handleInputChange}
             />
-            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500">
+            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground">
               %
             </span>
           </div>
           {errors.annualInterestRate && (
-            <p className="text-sm text-red-500">{errors.annualInterestRate}</p>
+            <p className="text-sm font-medium text-destructive">
+              {errors.annualInterestRate}
+            </p>
           )}
         </div>
 
         <div className="space-y-2">
           <label
             htmlFor="years"
-            className="block text-sm font-medium text-slate-700"
+            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
           >
             Prazo em anos
           </label>
@@ -233,54 +228,54 @@ ${motivationalPhrase}
             type="number"
             min="1"
             step="1"
-            className="w-full bg-white border border-slate-300 rounded-md py-2 px-3 text-slate-900 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
             value={data.years || ""}
             onChange={handleInputChange}
           />
           {errors.years && (
-            <p className="text-sm text-red-500">{errors.years}</p>
+            <p className="text-sm font-medium text-destructive">
+              {errors.years}
+            </p>
           )}
         </div>
 
         <button
-          onClick={handleCalculate}
-          className="w-full bg-amber-500 hover:bg-amber-600 text-white py-2 px-4 rounded-md transition-colors"
+          type="submit"
+          className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2 w-full"
         >
           Calcular
         </button>
+      </form>
 
-        {monthlyAmount !== null && (
-          <div className="mt-6 space-y-4">
-            <div className="rounded-lg bg-slate-50 p-4 border border-slate-200">
-              <h3 className="text-sm font-medium text-slate-700 mb-2">
+      {monthlyAmount !== null && (
+        <div className="mt-6 space-y-6">
+          <div className="rounded-lg border bg-card text-card-foreground shadow-sm p-6">
+            <div className="space-y-1.5">
+              <h3 className="text-lg font-semibold leading-none tracking-tight">
                 Aporte mensal necessário:
               </h3>
-              <p className="text-3xl font-bold text-slate-900">
+              <p className="text-3xl font-bold">
                 {formatCurrency(monthlyAmount)}
               </p>
-              <p className="text-sm text-slate-600 mt-2">{getExplanation()}</p>
+              <p className="text-sm text-muted-foreground">
+                {getExplanation()}
+              </p>
             </div>
-            <p className="text-sm italic text-center text-slate-500">
-              {motivationalPhrase}
-            </p>
           </div>
-        )}
-      </div>
 
-      <div className="p-6 border-t border-slate-200">
-        <button
-          onClick={exportToTxt}
-          disabled={monthlyAmount === null}
-          className={`w-full flex items-center justify-center py-2 px-4 rounded-md ${
-            monthlyAmount === null
-              ? "bg-slate-100 text-slate-400 cursor-not-allowed"
-              : "bg-amber-500 hover:bg-amber-600 text-white"
-          } transition-colors`}
-        >
-          <Download className="mr-2 h-4 w-4" />
-          Exportar resultado (.txt)
-        </button>
-      </div>
+          <p className="text-sm text-center text-muted-foreground italic">
+            {motivationalPhrase}
+          </p>
+
+          <button
+            onClick={exportToTxt}
+            className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2 w-full"
+          >
+            <Download className="mr-2 h-4 w-4" />
+            Exportar resultado (.txt)
+          </button>
+        </div>
+      )}
     </div>
   );
 }

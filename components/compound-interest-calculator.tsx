@@ -2,8 +2,8 @@
 
 import type React from "react";
 
-import { useState, useEffect, useRef } from "react";
-import { Download, Calculator } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Download } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
 import {
   LineChart,
@@ -54,12 +54,6 @@ export default function CompoundInterestCalculator() {
   const [motivationalPhrase, setMotivationalPhrase] = useState("");
   const [showResults, setShowResults] = useState(false);
 
-  // Dropdowns state
-  const [timeUnitOpen, setTimeUnitOpen] = useState(false);
-  const [capitalizationOpen, setCapitalizationOpen] = useState(false);
-  const timeUnitRef = useRef<HTMLDivElement>(null);
-  const capitalizationRef = useRef<HTMLDivElement>(null);
-
   useEffect(() => {
     // Load data from localStorage
     const savedData = localStorage.getItem("compoundInterestData");
@@ -78,27 +72,6 @@ export default function CompoundInterestCalculator() {
         Math.floor(Math.random() * motivationalPhrases.length)
       ]
     );
-
-    // Close dropdowns when clicking outside
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        timeUnitRef.current &&
-        !timeUnitRef.current.contains(event.target as Node)
-      ) {
-        setTimeUnitOpen(false);
-      }
-      if (
-        capitalizationRef.current &&
-        !capitalizationRef.current.contains(event.target as Node)
-      ) {
-        setCapitalizationOpen(false);
-      }
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
   }, []);
 
   useEffect(() => {
@@ -108,28 +81,28 @@ export default function CompoundInterestCalculator() {
 
   const calculateCompoundInterest = () => {
     // Validate data
-    const errors: { [key: string]: string } = {};
+    const newErrors: { [key: string]: string } = {};
 
     if (data.initialCapital <= 0) {
-      errors.initialCapital = "O capital inicial deve ser maior que zero";
+      newErrors.initialCapital = "O capital inicial deve ser maior que zero";
     }
 
     if (data.interestRate < 0.1) {
-      errors.interestRate = "A taxa deve ser maior que 0.1%";
+      newErrors.interestRate = "A taxa deve ser maior que 0.1%";
     } else if (data.interestRate > 100) {
-      errors.interestRate = "A taxa deve ser menor que 100%";
+      newErrors.interestRate = "A taxa deve ser menor que 100%";
     }
 
     if (data.time < 1) {
-      errors.time = "O tempo deve ser pelo menos 1";
+      newErrors.time = "O tempo deve ser pelo menos 1";
     }
 
     if (data.monthlyInvestment < 0) {
-      errors.monthlyInvestment = "O valor não pode ser negativo";
+      newErrors.monthlyInvestment = "O valor não pode ser negativo";
     }
 
-    if (Object.keys(errors).length > 0) {
-      setErrors(errors);
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
       return;
     }
 
@@ -222,17 +195,14 @@ export default function CompoundInterestCalculator() {
     setData({ ...data, [id]: numValue });
   };
 
-  const handleReset = () => {
-    setData({
-      initialCapital: 0,
-      interestRate: 0,
-      time: 0,
-      timeUnit: "anos",
-      monthlyInvestment: 0,
-      capitalization: "anual",
-    });
-    setShowResults(false);
-    setResult(null);
+  const handleSelectChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const { id, value } = e.target;
+    setData({ ...data, [id]: value });
+  };
+
+  const handleCalculate = (e: React.FormEvent) => {
+    e.preventDefault();
+    calculateCompoundInterest();
   };
 
   const exportToTxt = () => {
@@ -267,27 +237,18 @@ ${motivationalPhrase}
   };
 
   return (
-    <div className="bg-white rounded-lg overflow-hidden border border-slate-200 shadow-sm">
-      <div className="p-6 border-b border-slate-200">
-        <h2 className="text-xl font-bold text-slate-900">
-          Calculadora de Juros Compostos
-        </h2>
-        <p className="text-slate-500 mt-1">
-          Calcule o poder dos juros compostos no seu investimento
-        </p>
-      </div>
-
-      <div className="p-6 space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <div>
+      <form onSubmit={handleCalculate} className="space-y-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-2">
             <label
               htmlFor="initialCapital"
-              className="block text-sm font-medium text-slate-700"
+              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
             >
               Valor Inicial
             </label>
             <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
                 R$
               </span>
               <input
@@ -295,146 +256,101 @@ ${motivationalPhrase}
                 type="number"
                 min="0"
                 step="0.01"
-                className="w-full bg-white border border-slate-300 rounded-md py-2 pl-10 pr-3 text-slate-900 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 pl-8 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                 value={data.initialCapital || ""}
                 onChange={handleInputChange}
               />
             </div>
             {errors.initialCapital && (
-              <p className="text-sm text-red-500">{errors.initialCapital}</p>
+              <p className="text-sm font-medium text-destructive">
+                {errors.initialCapital}
+              </p>
             )}
           </div>
 
           <div className="space-y-2">
             <label
               htmlFor="interestRate"
-              className="block text-sm font-medium text-slate-700"
+              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
             >
               Taxa de Juros
             </label>
-            <div className="flex">
-              <input
-                id="interestRate"
-                type="number"
-                min="0.1"
-                max="100"
-                step="0.1"
-                className="flex-1 bg-white border border-slate-300 rounded-l-md py-2 px-3 text-slate-900 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent"
-                value={data.interestRate || ""}
-                onChange={handleInputChange}
-              />
-              <div className="custom-select" ref={capitalizationRef}>
-                <button
-                  type="button"
-                  onClick={() => setCapitalizationOpen(!capitalizationOpen)}
-                  className="bg-white border border-slate-300 border-l-0 rounded-r-md py-2 px-4 text-slate-900 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent flex items-center justify-between min-w-[120px]"
-                >
-                  <span>
-                    {data.capitalization === "anual" ? "ANUAL" : "MENSAL"}
-                  </span>
-                  <span className="ml-2">▼</span>
-                </button>
-                {capitalizationOpen && (
-                  <div className="custom-select-dropdown">
-                    <div
-                      className={`custom-select-option ${
-                        data.capitalization === "anual" ? "selected" : ""
-                      }`}
-                      onClick={() => {
-                        setData({ ...data, capitalization: "anual" });
-                        setCapitalizationOpen(false);
-                      }}
-                    >
-                      ANUAL
-                    </div>
-                    <div
-                      className={`custom-select-option ${
-                        data.capitalization === "mensal" ? "selected" : ""
-                      }`}
-                      onClick={() => {
-                        setData({ ...data, capitalization: "mensal" });
-                        setCapitalizationOpen(false);
-                      }}
-                    >
-                      MENSAL
-                    </div>
-                  </div>
-                )}
+            <div className="flex space-x-2">
+              <div className="relative flex-1">
+                <input
+                  id="interestRate"
+                  type="number"
+                  min="0.1"
+                  max="100"
+                  step="0.1"
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 pr-8 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                  value={data.interestRate || ""}
+                  onChange={handleInputChange}
+                />
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+                  %
+                </span>
               </div>
+              <select
+                id="capitalization"
+                className="flex h-10 w-[110px] rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                value={data.capitalization}
+                onChange={handleSelectChange}
+              >
+                <option value="anual">ANUAL</option>
+                <option value="mensal">MENSAL</option>
+              </select>
             </div>
             {errors.interestRate && (
-              <p className="text-sm text-red-500">{errors.interestRate}</p>
+              <p className="text-sm font-medium text-destructive">
+                {errors.interestRate}
+              </p>
             )}
           </div>
 
           <div className="space-y-2">
             <label
               htmlFor="time"
-              className="block text-sm font-medium text-slate-700"
+              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
             >
               Período
             </label>
-            <div className="flex">
+            <div className="flex space-x-2">
               <input
                 id="time"
                 type="number"
                 min="1"
                 step="1"
-                className="flex-1 bg-white border border-slate-300 rounded-l-md py-2 px-3 text-slate-900 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                 value={data.time || ""}
                 onChange={handleInputChange}
               />
-              <div className="custom-select" ref={timeUnitRef}>
-                <button
-                  type="button"
-                  onClick={() => setTimeUnitOpen(!timeUnitOpen)}
-                  className="bg-white border border-slate-300 border-l-0 rounded-r-md py-2 px-4 text-slate-900 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent flex items-center justify-between min-w-[120px]"
-                >
-                  <span>{data.timeUnit === "anos" ? "ANOS" : "MESES"}</span>
-                  <span className="ml-2">▼</span>
-                </button>
-                {timeUnitOpen && (
-                  <div className="custom-select-dropdown">
-                    <div
-                      className={`custom-select-option ${
-                        data.timeUnit === "anos" ? "selected" : ""
-                      }`}
-                      onClick={() => {
-                        setData({ ...data, timeUnit: "anos" });
-                        setTimeUnitOpen(false);
-                      }}
-                    >
-                      ANOS
-                    </div>
-                    <div
-                      className={`custom-select-option ${
-                        data.timeUnit === "meses" ? "selected" : ""
-                      }`}
-                      onClick={() => {
-                        setData({ ...data, timeUnit: "meses" });
-                        setTimeUnitOpen(false);
-                      }}
-                    >
-                      MESES
-                    </div>
-                  </div>
-                )}
-              </div>
+              <select
+                id="timeUnit"
+                className="flex h-10 w-[110px] rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                value={data.timeUnit}
+                onChange={handleSelectChange}
+              >
+                <option value="anos">ANOS</option>
+                <option value="meses">MESES</option>
+              </select>
             </div>
             {errors.time && (
-              <p className="text-sm text-red-500">{errors.time}</p>
+              <p className="text-sm font-medium text-destructive">
+                {errors.time}
+              </p>
             )}
           </div>
 
           <div className="space-y-2">
             <label
               htmlFor="monthlyInvestment"
-              className="block text-sm font-medium text-slate-700"
+              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
             >
               Investimento Mensal
             </label>
             <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
                 R$
               </span>
               <input
@@ -442,129 +358,106 @@ ${motivationalPhrase}
                 type="number"
                 min="0"
                 step="0.01"
-                className="w-full bg-white border border-slate-300 rounded-md py-2 pl-10 pr-3 text-slate-900 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 pl-8 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                 value={data.monthlyInvestment || ""}
                 onChange={handleInputChange}
               />
             </div>
             {errors.monthlyInvestment && (
-              <p className="text-sm text-red-500">{errors.monthlyInvestment}</p>
+              <p className="text-sm font-medium text-destructive">
+                {errors.monthlyInvestment}
+              </p>
             )}
           </div>
         </div>
 
-        <div className="flex justify-between gap-4 mt-6">
-          <button
-            onClick={handleReset}
-            className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-md transition-colors"
-          >
-            Limpar
-          </button>
-          <button
-            onClick={calculateCompoundInterest}
-            className="flex items-center px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-md transition-colors"
-          >
-            <Calculator className="mr-2 h-4 w-4" />
-            Calcular
-          </button>
-        </div>
+        <button
+          type="submit"
+          className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2 w-full"
+        >
+          Calcular
+        </button>
+      </form>
 
-        {showResults && result !== null && (
-          <div className="mt-6 space-y-6">
-            <div className="rounded-lg bg-slate-50 p-4 border border-slate-200">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <h3 className="text-sm font-medium text-slate-700 mb-2">
-                    Montante final:
-                  </h3>
-                  <p className="text-3xl font-bold text-slate-900">
-                    {formatCurrency(result.finalAmount)}
-                  </p>
-                </div>
-                <div>
-                  <h3 className="text-sm font-medium text-slate-700 mb-2">
-                    Total de juros ganhos:
-                  </h3>
-                  <p className="text-3xl font-bold text-slate-900">
-                    {formatCurrency(result.interestGained)}
-                  </p>
-                </div>
+      {showResults && result !== null && (
+        <div className="mt-6 space-y-6">
+          <div className="rounded-lg border bg-card text-card-foreground shadow-sm p-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <h3 className="text-lg font-semibold leading-none tracking-tight">
+                  Montante final:
+                </h3>
+                <p className="text-3xl font-bold">
+                  {formatCurrency(result.finalAmount)}
+                </p>
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold leading-none tracking-tight">
+                  Total de juros ganhos:
+                </h3>
+                <p className="text-3xl font-bold">
+                  {formatCurrency(result.interestGained)}
+                </p>
               </div>
             </div>
-
-            <div className="h-64 w-full mt-4 bg-white p-4 rounded-lg border border-slate-200">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart
-                  data={chartData}
-                  margin={{
-                    top: 5,
-                    right: 30,
-                    left: 20,
-                    bottom: 5,
-                  }}
-                >
-                  <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
-                  <XAxis
-                    dataKey="period"
-                    tick={{ fontSize: 12, fill: "#64748B" }}
-                  />
-                  <YAxis
-                    tick={{ fontSize: 12, fill: "#64748B" }}
-                    tickFormatter={(value) =>
-                      `R${
-                        value >= 1000 ? `${(value / 1000).toFixed(0)}k` : value
-                      }`
-                    }
-                  />
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: "#FFFFFF",
-                      border: "1px solid #E5E7EB",
-                      borderRadius: "0.375rem",
-                    }}
-                    formatter={(value) => [
-                      `R$ ${Number(value).toLocaleString("pt-BR", {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2,
-                      })}`,
-                      "Valor",
-                    ]}
-                    labelStyle={{ color: "#334155" }}
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="amount"
-                    stroke="#F59E0B"
-                    strokeWidth={2}
-                    dot={{ fill: "#F59E0B", strokeWidth: 2 }}
-                    activeDot={{ r: 8 }}
-                    name="Valor"
-                  />
-                </LineChart>
-              </ResponsiveContainer>
-            </div>
-
-            <p className="text-sm italic text-center text-slate-500">
-              {motivationalPhrase}
-            </p>
           </div>
-        )}
-      </div>
 
-      <div className="p-6 border-t border-slate-200">
-        <button
-          onClick={exportToTxt}
-          disabled={result === null}
-          className={`w-full flex items-center justify-center py-2 px-4 rounded-md ${
-            result === null
-              ? "bg-slate-100 text-slate-400 cursor-not-allowed"
-              : "bg-amber-500 hover:bg-amber-600 text-white"
-          } transition-colors`}
-        >
-          <Download className="mr-2 h-4 w-4" />
-          Exportar resultado (.txt)
-        </button>
-      </div>
+          <div className="h-64 w-full bg-card rounded-lg border p-4">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart
+                data={chartData}
+                margin={{
+                  top: 10,
+                  right: 30,
+                  left: 20,
+                  bottom: 10,
+                }}
+              >
+                <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
+                <XAxis dataKey="period" tick={{ fontSize: 12 }} />
+                <YAxis
+                  tick={{ fontSize: 12 }}
+                  tickFormatter={(value) =>
+                    `R${
+                      value >= 1000 ? `${(value / 1000).toFixed(0)}k` : value
+                    }`
+                  }
+                />
+                <Tooltip
+                  formatter={(value) => [
+                    `R$ ${Number(value).toLocaleString("pt-BR", {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    })}`,
+                    "Valor",
+                  ]}
+                />
+                <Line
+                  type="monotone"
+                  dataKey="amount"
+                  stroke="#171717"
+                  strokeWidth={2}
+                  dot={{ fill: "#171717", strokeWidth: 2 }}
+                  activeDot={{ r: 6 }}
+                  name="Valor"
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+
+          <p className="text-sm text-center text-muted-foreground italic">
+            {motivationalPhrase}
+          </p>
+
+          <button
+            onClick={exportToTxt}
+            className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2 w-full"
+          >
+            <Download className="mr-2 h-4 w-4" />
+            Exportar resultado (.txt)
+          </button>
+        </div>
+      )}
     </div>
   );
 }
